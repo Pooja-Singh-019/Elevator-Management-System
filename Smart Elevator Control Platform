@@ -1,0 +1,195 @@
+
+
+building [icon: building, color: blue] {
+  building_id bigint pk
+  name string
+  address string
+  timezone string
+  status string
+  created_at datetime
+  updated_at datetime
+}
+
+floor [icon: layers, color: green] {
+  floor_id bigint pk
+  building_id bigint fk
+  floor_number int
+  floor_label string
+  is_public boolean
+  is_active boolean
+  created_at datetime
+}
+
+elevator_shaft [icon: columns, color: gray] {
+  shaft_id bigint pk
+  building_id bigint fk
+  shaft_code string
+  location_label string
+  status string
+  created_at datetime
+}
+
+elevator [icon: arrow-up-down, color: orange] {
+  elevator_id bigint pk
+  building_id bigint fk
+  shaft_id bigint fk
+  elevator_code string
+  manufacturer string
+  model string
+  serial_number string
+  installed_at datetime
+  retired_at datetime
+  lifecycle_status string
+  created_at datetime
+}
+
+elevator_config_version [icon: settings, color: gray] {
+  config_version_id bigint pk
+  elevator_id bigint fk
+  speed_mps decimal
+  capacity_kg int
+  max_passengers int
+  door_type string
+  firmware_version string
+  effective_from datetime
+  effective_until datetime
+  created_at datetime
+}
+
+elevator_floor_service [icon: check-circle, color: green] {
+  service_id bigint pk
+  elevator_id bigint fk
+  floor_id bigint fk
+  service_direction string
+  is_enabled boolean
+  valid_from datetime
+  valid_until datetime
+}
+
+platform_user [icon: user, color: purple] {
+  user_id bigint pk
+  external_reference string
+  name string
+  user_type string
+  created_at datetime
+}
+
+floor_request [icon: bell, color: purple] {
+  request_id bigint pk
+  building_id bigint fk
+  user_id bigint fk
+  origin_floor_id bigint fk
+  destination_floor_id bigint fk
+  requested_direction string
+  request_source string
+  request_status string
+  requested_at datetime
+}
+
+ride_assignment [icon: git-branch, color: yellow] {
+  assignment_id bigint pk
+  request_id bigint fk
+  elevator_id bigint fk
+  assignment_status string
+  dispatch_algorithm_version string
+  dispatch_score decimal
+  assigned_at datetime
+  cancelled_at datetime
+  cancel_reason string
+}
+
+ride_trip [icon: route, color: yellow] {
+  trip_id bigint pk
+  assignment_id bigint fk
+  elevator_id bigint fk
+  origin_floor_id bigint fk
+  destination_floor_id bigint fk
+  started_at datetime
+  arrived_at datetime
+  completed_at datetime
+  wait_seconds int
+  travel_seconds int
+  result_status string
+  failure_reason string
+}
+
+elevator_status_event [icon: activity, color: red] {
+  status_event_id bigint pk
+  elevator_id bigint fk
+  current_floor_id bigint fk
+  status string
+  direction string
+  door_state string
+  load_kg decimal
+  speed_mps decimal
+  source string
+  event_time datetime
+}
+
+elevator_current_state [icon: gauge, color: red] {
+  elevator_id bigint pk
+  latest_status_event_id bigint fk
+  current_floor_id bigint fk
+  status string
+  direction string
+  door_state string
+  updated_at datetime
+}
+
+maintenance_ticket [icon: tool, color: brown] {
+  maintenance_ticket_id bigint pk
+  elevator_id bigint fk
+  reported_by_user_id bigint fk
+  maintenance_type string
+  severity string
+  status string
+  description string
+  opened_at datetime
+  closed_at datetime
+}
+
+maintenance_action [icon: wrench, color: brown] {
+  maintenance_action_id bigint pk
+  maintenance_ticket_id bigint fk
+  performed_by_user_id bigint fk
+  action_type string
+  notes string
+  performed_at datetime
+}
+
+building.building_id < floor.building_id
+building.building_id < elevator_shaft.building_id
+building.building_id < elevator.building_id
+
+elevator_shaft.shaft_id < elevator.shaft_id
+
+elevator.elevator_id < elevator_config_version.elevator_id
+
+elevator.elevator_id < elevator_floor_service.elevator_id
+floor.floor_id < elevator_floor_service.floor_id
+
+platform_user.user_id < floor_request.user_id
+building.building_id < floor_request.building_id
+floor.floor_id < floor_request.origin_floor_id
+floor.floor_id < floor_request.destination_floor_id
+
+floor_request.request_id < ride_assignment.request_id
+elevator.elevator_id < ride_assignment.elevator_id
+
+ride_assignment.assignment_id < ride_trip.assignment_id
+elevator.elevator_id < ride_trip.elevator_id
+floor.floor_id < ride_trip.origin_floor_id
+floor.floor_id < ride_trip.destination_floor_id
+
+elevator.elevator_id < elevator_status_event.elevator_id
+floor.floor_id < elevator_status_event.current_floor_id
+
+elevator.elevator_id < elevator_current_state.elevator_id
+elevator_status_event.status_event_id < elevator_current_state.latest_status_event_id
+floor.floor_id < elevator_current_state.current_floor_id
+
+elevator.elevator_id < maintenance_ticket.elevator_id
+platform_user.user_id < maintenance_ticket.reported_by_user_id
+
+maintenance_ticket.maintenance_ticket_id < maintenance_action.maintenance_ticket_id
+platform_user.user_id < maintenance_action.performed_by_user_id

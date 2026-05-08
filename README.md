@@ -1,0 +1,1 @@
+Smart Elevator Control Platform is an ERD/database design for managing buildings, floors, elevators, ride requests, dispatch assignments, trip logs, elevator status, and maintenance history. It separates static elevator data from dynamic operational records to preserve history and avoid overwriting live state.
